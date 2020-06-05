@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Audio;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,7 @@ namespace Chizar_Bot
     class Program
     {
         const string token = "";
-
+        private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
         static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient Client;
@@ -40,8 +41,17 @@ namespace Chizar_Bot
             await Client.StartAsync();
 
 
+
+            
+     
+            Client.GuildAvailable += UpdateMembers;
             await Task.Delay(-1);
 
+        }
+
+        private async Task UpdateMembers(SocketGuild arg)
+        {
+            
         }
 
         private Task Client_Log(LogMessage arg)
@@ -61,15 +71,9 @@ namespace Chizar_Bot
 
         private async Task HandleCommandAsync(SocketMessage arg)
         {
-
-            if (arg.Author.IsBot || arg.Author.IsWebhook) { return; }
-
+            if (arg.Author.IsBot || arg.Author.IsWebhook || arg.Content.Length == 0) { Console.WriteLine("Returning..."); return; }
             var message = arg as SocketUserMessage;
             var context = new SocketCommandContext(Client, message);
-            
-           
-
-            
 
             int argPos = 0;
             if (message.HasStringPrefix("!", ref argPos))
