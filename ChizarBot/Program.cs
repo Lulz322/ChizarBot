@@ -44,14 +44,9 @@ namespace Chizar_Bot
 
             
      
-            Client.GuildAvailable += UpdateMembers;
+            
             await Task.Delay(-1);
 
-        }
-
-        private async Task UpdateMembers(SocketGuild arg)
-        {
-            
         }
 
         private Task Client_Log(LogMessage arg)
@@ -65,8 +60,15 @@ namespace Chizar_Bot
             Client.MessageReceived += HandleCommandAsync;
             Client.UserJoined += CheckBanList;
             Client.UserJoined += AnnaunceJoinedUser;
+            Client.UserIsTyping += TypingMessage;
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+        }
+
+        private async Task TypingMessage(SocketUser arg1, ISocketMessageChannel arg2)
+        {
+            if (arg1.Id == 311865122815737856 || arg1.Id == 678596764881649665)
+                await arg2.SendMessageAsync($"{arg1.Username} не пиши сюда, от тебя гавной воняет");
         }
 
         private async Task HandleCommandAsync(SocketMessage arg)
