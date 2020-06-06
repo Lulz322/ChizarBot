@@ -14,8 +14,7 @@ namespace Chizar_Bot.Modules
 {
     public class Commands : ModuleBase<SocketCommandContext>
     {
-    //    private IEnumerator<SocketGuildUser> it;
-
+        
         [Command("init")]
         public async Task Loh()
         {

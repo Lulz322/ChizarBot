@@ -18,8 +18,9 @@ namespace Chizar_Bot
     {
         const string token = "";
         private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
-        private List<ulong> TypingList;
+        private List<ulong> AdminList;
         private List<ulong> BanList;
+        private List<string> Answers;
         private List<ulong> ReactToMessage;
         bool FirstRun = true;
         static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
@@ -40,8 +41,9 @@ namespace Chizar_Bot
 
             Client.Log += Client_Log;
 
-            BanList = ReadWriter.TakeList("BanList");
-            TypingList = ReadWriter.TakeList("TypingList");
+            BanList = ReadWriter.TakeUintList("BanList");
+            AdminList = ReadWriter.TakeUintList("AdminList");
+            Answers = ReadWriter.TakeStringList("Answers");
 
 
             await RegisterCommandsAsync();
@@ -94,16 +96,25 @@ namespace Chizar_Bot
             }
         }
 
+        private bool IsAdmin(SocketUser arg1)
+        {
+            foreach(ulong it in AdminList)
+            {
+                if (arg1.Id == it)
+                    return true;
+            }
+            return false;
+        }
 
         private async Task TypingMessage(SocketUser arg1, ISocketMessageChannel arg2)
         {
-            foreach (ulong it in TypingList)
+
+            if (!IsAdmin(arg1))
             {
-                if (it == arg1.Id)
-                {
-                    await arg2.SendMessageAsync($"{arg1.Mention} не пиши сюда, от тебя гавной воняет");
-                    return;
-                }
+                Random random = new Random();
+
+                string text = Answers.ElementAt(random.Next(0, Answers.Count));
+                await arg2.SendMessageAsync($"{arg1.Mention}, {text}");
             }
         }
 
@@ -143,7 +154,7 @@ namespace Chizar_Bot
                 {
                     var dmChannel = await user.GetOrCreateDMChannelAsync();
                     var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
-                    await channel.SendMessageAsync($"Лох { user.Nickname}ID: { user.Id}\nХотел зайти на канал");
+                    await channel.SendMessageAsync($"Лох { user.Username}ID: { user.Id}\nХотел зайти на канал");
                     await dmChannel.SendMessageAsync("Лохам Вход запрещён");
                     await user.KickAsync($"{user.Mention} Лошок");
                     return;
