@@ -137,11 +137,13 @@ namespace Chizar_Bot
 
         private async Task CheckBanList(SocketGuildUser user)
         {
-            foreach (uint it in BanList)
+            foreach (ulong it in BanList)
             {
                 if (it == user.Id)
                 {
                     var dmChannel = await user.GetOrCreateDMChannelAsync();
+                    var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
+                    await channel.SendMessageAsync($"Лох { user.Nickname}ID: { user.Id}\nХотел зайти на канал");
                     await dmChannel.SendMessageAsync("Лохам Вход запрещён");
                     await user.KickAsync($"{user.Mention} Лошок");
                     return;
