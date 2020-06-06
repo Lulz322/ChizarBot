@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using ChizarBot;
 using Discord;
 using Discord.Audio;
 using Discord.Commands;
@@ -17,6 +18,9 @@ namespace Chizar_Bot
     {
         const string token = "";
         private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
+        private List<ulong> TypingList;
+        private List<ulong> BanList;
+        private List<ulong> ReactToMessage;
         static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient Client;
@@ -35,16 +39,15 @@ namespace Chizar_Bot
 
             Client.Log += Client_Log;
 
+            BanList = ReadWriter.TakeList("BanList");
+            TypingList = ReadWriter.TakeList("TypingList");
+
+
             await RegisterCommandsAsync();
             await Client.LoginAsync(TokenType.Bot, token);
 
             await Client.StartAsync();
 
-
-
-            
-     
-            
             await Task.Delay(-1);
 
         }
@@ -67,8 +70,14 @@ namespace Chizar_Bot
 
         private async Task TypingMessage(SocketUser arg1, ISocketMessageChannel arg2)
         {
-            if (arg1.Id == 311865122815737856 || arg1.Id == 678596764881649665)
-                await arg2.SendMessageAsync($"{arg1.Username} не пиши сюда, от тебя гавной воняет");
+            foreach (ulong it in TypingList)
+            {
+                if (it == arg1.Id)
+                {
+                    await arg2.SendMessageAsync($"{arg1.Mention} не пиши сюда, от тебя гавной воняет");
+                    return;
+                }
+            }
         }
 
         private async Task HandleCommandAsync(SocketMessage arg)
@@ -76,6 +85,11 @@ namespace Chizar_Bot
             if (arg.Author.IsBot || arg.Author.IsWebhook || arg.Content.Length == 0) { Console.WriteLine("Returning..."); return; }
             var message = arg as SocketUserMessage;
             var context = new SocketCommandContext(Client, message);
+
+
+            if (arg.Author.Id == 219818135748870144)
+                await context.Channel.SendMessageAsync("Спасибо Дэнчик!");
+
 
             int argPos = 0;
             if (message.HasStringPrefix("!", ref argPos))
@@ -88,11 +102,15 @@ namespace Chizar_Bot
 
         private async Task CheckBanList(SocketGuildUser user)
         {
-            if (user.Id == 303918830072365056)
+            foreach (uint it in BanList)
             {
-                var dmChannel = await user.GetOrCreateDMChannelAsync();
-                await dmChannel.SendMessageAsync("Лохам Вход запрещён");
-                await user.KickAsync("Artur Loh");
+                if (it == user.Id)
+                {
+                    var dmChannel = await user.GetOrCreateDMChannelAsync();
+                    await dmChannel.SendMessageAsync("Лохам Вход запрещён");
+                    await user.KickAsync($"{user.Mention} Лошок");
+                    return;
+                }
             }
         }
 
