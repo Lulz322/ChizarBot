@@ -86,6 +86,13 @@ namespace Chizar_Bot
             var message = arg as SocketUserMessage;
             var context = new SocketCommandContext(Client, message);
 
+            if (context.Channel.Id == 718888382176165968)
+            {
+                await context.Channel.SendMessageAsync($"{arg.Author.Username} начинает играть в" + message.ToString() + ". Присойденяйся, Сань");
+                await message.DeleteAsync();
+                return;
+            }
+            
 
             if (arg.Author.Id == 219818135748870144)
                 await context.Channel.SendMessageAsync("Спасибо Дэнчик!");
