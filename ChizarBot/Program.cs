@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -21,6 +21,7 @@ namespace Chizar_Bot
         private List<ulong> TypingList;
         private List<ulong> BanList;
         private List<ulong> ReactToMessage;
+        bool FirstRun = true;
         static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
 
         private DiscordSocketClient Client;
@@ -64,31 +65,35 @@ namespace Chizar_Bot
             Client.UserJoined += CheckBanList;
             Client.UserJoined += AnnaunceJoinedUser;
             Client.UserIsTyping += TypingMessage;
-            //Client.GuildAvailable += Tick;
-            Client.Connected += CheckConnectedVariables;
+            Client.GuildAvailable += Tick;
+            //Client.Connected += CheckConnectedVariables;
             
             
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }
 
-        private async Task CheckConnectedVariables()
+/*        private async Task CheckConnectedVariables()
         {
-            IEnumerator<SocketGuildUser> it;
 
-            it = Client.GetGuild(718185523390185574).Users.GetEnumerator();
-            while (it.MoveNext())
+        }*/
+
+        private async Task Tick(SocketGuild arg)
+        {
+            if (FirstRun)
             {
-                if (!it.Current.IsBot)
-                    await CheckBanList(it.Current);
+                IEnumerator<SocketGuildUser> it;
+
+                it = arg.Users.GetEnumerator();
+                while (it.MoveNext())
+                {
+                    if (!it.Current.IsBot)
+                        await CheckBanList(it.Current);
+                }
+                FirstRun = false;
             }
         }
 
-/*        private async Task Tick(SocketGuild arg)
-        {
-
-        }
-*/
 
         private async Task TypingMessage(SocketUser arg1, ISocketMessageChannel arg2)
         {
