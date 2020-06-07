@@ -21,6 +21,7 @@ namespace Chizar_Bot
         private List<ulong> AdminList;
         private List<ulong> BanList;
         private List<string> Answers;
+        private List<ulong> TypingList;
         private List<ulong> ReactToMessage;
         bool FirstRun = true;
         static void Main(string[] args) => new Program().RunBotAsync().GetAwaiter().GetResult();
@@ -44,6 +45,7 @@ namespace Chizar_Bot
             BanList = ReadWriter.TakeUintList("BanList");
             AdminList = ReadWriter.TakeUintList("AdminList");
             Answers = ReadWriter.TakeStringList("Answers");
+            TypingList = ReadWriter.TakeUintList("TypingList");
 
 
             await RegisterCommandsAsync();
@@ -108,14 +110,11 @@ namespace Chizar_Bot
 
         private async Task TypingMessage(SocketUser arg1, ISocketMessageChannel arg2)
         {
-
-            if (!IsAdmin(arg1))
+            foreach(ulong it in TypingList)
             {
-                Random random = new Random();
-
-                string text = Answers.ElementAt(random.Next(0, Answers.Count));
-                await arg2.SendMessageAsync($"{arg1.Mention}, {text}");
+                await arg2.SendMessageAsync($"{arg1.Mention}, не пиши сюда, от тебя гавной воняет");
             }
+
         }
 
         private async Task HandleCommandAsync(SocketMessage arg)
@@ -127,14 +126,24 @@ namespace Chizar_Bot
 
             if (context.Channel.Id == 718888382176165968)
             {
-                await context.Channel.SendMessageAsync($"{arg.Author.Username} начинает играть в" + message.ToString() + ". Присойденяйся, Сань");
+                await context.Channel.SendMessageAsync($"{arg.Author.Username} начинает играть в " + message.ToString() + ". Присойденяйся, Сань");
                 await message.DeleteAsync();
                 return;
             }
             
 
             if (arg.Author.Id == 219818135748870144)
-                await context.Channel.SendMessageAsync("Спасибо Дэнчик!");
+                await context.Channel.SendMessageAsync("Спасибо, Дэнчик!");
+            else
+            {
+                if (!IsAdmin(arg.Author))
+                {
+                    Random random = new Random();
+
+                    string text = Answers.ElementAt(random.Next(0, Answers.Count));
+                    await arg.Author.SendMessageAsync($"{arg.Author.Mention}, {text}");
+                }
+            }
 
 
             int argPos = 0;
