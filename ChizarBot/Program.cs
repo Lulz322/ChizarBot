@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using ChizarBot;
 using Discord;
@@ -18,8 +19,8 @@ namespace Chizar_Bot
     {
         const string token = "";
         private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
-        private List<ulong> AdminList;
-        private List<ulong> BanList;
+        private static List<ulong> AdminList;
+        public static List<BanMembers> BanList;
         private List<string> Answers;
         private List<ulong> TypingList;
         private List<ulong> ReactToMessage;
@@ -30,6 +31,15 @@ namespace Chizar_Bot
         private CommandService Commands;
         private IServiceProvider Services;
 
+
+        private async Task TimeForUnban()
+        {
+            foreach (BanMembers it in BanList)
+            {
+                it.Time--;
+            }
+            Thread.Sleep(100);
+        }
 
         public async Task RunBotAsync()
         {
@@ -42,10 +52,17 @@ namespace Chizar_Bot
 
             Client.Log += Client_Log;
 
-            BanList = ReadWriter.TakeUintList("BanList");
+            List<string> tmp = ReadWriter.TakeStringList("BanList");
+            foreach (string it in tmp)
+            {
+                string[] strtmp = it.Split(' ');
+                BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]), Convert.ToUInt64(strtmp[1])));
+            }
             AdminList = ReadWriter.TakeUintList("AdminList");
             Answers = ReadWriter.TakeStringList("Answers");
             TypingList = ReadWriter.TakeUintList("TypingList");
+
+            await TimeForUnban();
 
 
             await RegisterCommandsAsync();
@@ -62,6 +79,9 @@ namespace Chizar_Bot
             Console.WriteLine(arg);
             return Task.CompletedTask;
         }
+
+
+ 
 
         public async Task RegisterCommandsAsync()
         {
@@ -98,7 +118,7 @@ namespace Chizar_Bot
             }
         }
 
-        private bool IsAdmin(SocketUser arg1)
+        static public bool IsAdmin(SocketUser arg1)
         {
             foreach(ulong it in AdminList)
             {
@@ -112,7 +132,8 @@ namespace Chizar_Bot
         {
             foreach(ulong it in TypingList)
             {
-                await arg2.SendMessageAsync($"{arg1.Mention}, не пиши сюда, от тебя гавной воняет");
+                if (it == arg1.Id)
+                    await arg2.SendMessageAsync($"{arg1.Mention}, не пиши сюда, от тебя гавной воняет");
             }
 
         }
@@ -133,7 +154,9 @@ namespace Chizar_Bot
             
 
             if (arg.Author.Id == 219818135748870144)
+            {
                 await context.Channel.SendMessageAsync("Спасибо, Дэнчик!");
+            }
             else
             {
                 if (!IsAdmin(arg.Author))
@@ -141,7 +164,8 @@ namespace Chizar_Bot
                     Random random = new Random();
 
                     string text = Answers.ElementAt(random.Next(0, Answers.Count));
-                    await arg.Author.SendMessageAsync($"{arg.Author.Mention}, {text}");
+                    var channel = new SocketCommandContext(Client, message);
+                    await arg.Channel.SendMessageAsync($"{arg.Author.Mention}, {text}");
                 }
             }
 
@@ -157,9 +181,9 @@ namespace Chizar_Bot
 
         private async Task CheckBanList(SocketGuildUser user)
         {
-            foreach (ulong it in BanList)
+            foreach (BanMembers it in BanList)
             {
-                if (it == user.Id)
+                if (it.DiscId1 == user.Id)
                 {
                     var dmChannel = await user.GetOrCreateDMChannelAsync();
                     var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
