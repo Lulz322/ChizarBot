@@ -6,16 +6,28 @@ namespace ChizarBot
 {
     class BanMembers
     {
-        public BanMembers(ulong id, ulong bantime)
+        public BanMembers(ulong id, string nm, string date, string cm, string kick)
         {
+            Name = nm;
             DiscId = id;
-            time = bantime;
+            time = date;
+            comment = cm;
+            KickWithReason = kick;
         }
 
         private ulong DiscId;
-        private ulong time;
+        private string time;
+        private string Name;
+        private string comment;
+        private string KickWithReason;
 
-        public ulong DiscId1 { get => DiscId; set => DiscId = value; }
-        public ulong Time { get => time; set => time = value; }
+
+        public string GetComment() { return comment; }
+        public string GetKickWithReason() { return KickWithReason; }
+
+        public string GetName() { return Name; }
+        public ulong GetDiscId() { return DiscId; }
+        public string GetTime() { return time; }
+
     }
 }

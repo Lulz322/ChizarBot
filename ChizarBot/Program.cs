@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -19,8 +20,8 @@ namespace Chizar_Bot
     {
         const string token = "";
         private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
-        private static List<ulong> AdminList;
-        public static List<BanMembers> BanList;
+        public List<ulong> AdminList;
+        public List<BanMembers> BanList = new List<BanMembers>();
         private List<string> Answers;
         private List<ulong> TypingList;
         private List<ulong> ReactToMessage;
@@ -31,14 +32,21 @@ namespace Chizar_Bot
         private CommandService Commands;
         private IServiceProvider Services;
 
+        private string nowtime;
 
-        private async Task TimeForUnban()
+        private FileSystemWatcher Watcher = new FileSystemWatcher();
+
+
+
+        private async void ChangeTime()
         {
-            foreach (BanMembers it in BanList)
+            while (true)
             {
-                it.Time--;
+                nowtime = System.DateTime.Now.ToString();
+                Thread.Sleep(1000);
+                await CheckBanListTwo();
             }
-            Thread.Sleep(100);
+
         }
 
         public async Task RunBotAsync()
@@ -55,15 +63,29 @@ namespace Chizar_Bot
             List<string> tmp = ReadWriter.TakeStringList("BanList");
             foreach (string it in tmp)
             {
-                string[] strtmp = it.Split(' ');
-                BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]), Convert.ToUInt64(strtmp[1])));
+                string[] strtmp = it.Split('|');
+                if (strtmp.Length == 3)
+                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
+                        strtmp[1], strtmp[2], null, null));
+                else if (strtmp.Length == 4)
+                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
+                        strtmp[1], strtmp[2], strtmp[3], null));
+                else if (strtmp.Length == 5)
+                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
+                        strtmp[1], strtmp[2], strtmp[3], strtmp[4]));
             }
-            AdminList = ReadWriter.TakeUintList("AdminList");
+
             Answers = ReadWriter.TakeStringList("Answers");
             TypingList = ReadWriter.TakeUintList("TypingList");
+            AdminList = ReadWriter.TakeUintList("AdminList");
 
-            await TimeForUnban();
+            Watcher.Path = @"Y:\Projects\Chizar\ChizarBot\bin\Debug\netcoreapp3.1";
+            Watcher.NotifyFilter = NotifyFilters.LastWrite;
+            Watcher.Filter = "*.*";
 
+
+            Thread myThread = new Thread(new ThreadStart(ChangeTime));
+            myThread.Start(); 
 
             await RegisterCommandsAsync();
             await Client.LoginAsync(TokenType.Bot, token);
@@ -81,7 +103,7 @@ namespace Chizar_Bot
         }
 
 
- 
+
 
         public async Task RegisterCommandsAsync()
         {
@@ -90,24 +112,58 @@ namespace Chizar_Bot
             Client.UserJoined += AnnaunceJoinedUser;
             Client.UserIsTyping += TypingMessage;
             Client.GuildAvailable += Tick;
-            //Client.Connected += CheckConnectedVariables;
-            
-            
+            Watcher.Changed += onBanChange;
+            Client.Ready += CheckConnectedVariables;
+
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }
 
-/*        private async Task CheckConnectedVariables()
+        private async Task CheckConnectedVariables()
         {
+            IVoiceChannel channel = (IVoiceChannel)Client.GetChannel(718514363459174540);
+            IAudioClient client = await channel.ConnectAsync(false, false, true);
+        }
 
-        }*/
+        private void onBanChange(object sender, FileSystemEventArgs e)
+        {
+            if (e.ChangeType == WatcherChangeTypes.Changed && e.Name == "BanList")
+            {
+                BanList.Clear();
+                List<string> tmp = ReadWriter.TakeStringList("BanList");
+                foreach (string it in tmp)
+                {
+                    string[] strtmp = it.Split('|');
+                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
+                        strtmp[1], strtmp[2], strtmp[3], strtmp[4]));
+                }
+            }
+
+        }
+
+        
+
+        private async Task CheckBanListTwo()
+        {
+            foreach(BanMembers it in BanList)
+            {
+                if (it.GetTime() == nowtime.ToString())
+                {
+                    var context = Client.GetChannel(718185523390185577) as SocketTextChannel;
+                    await context.SendMessageAsync($"Лошок с ID {it.GetDiscId()} откинулся");
+
+                    await ReadWriter.RemoveObj(it.GetDiscId(), "BanList");
+                }
+            }
+        }
+
+
 
         private async Task Tick(SocketGuild arg)
         {
             if (FirstRun)
             {
                 IEnumerator<SocketGuildUser> it;
-
                 it = arg.Users.GetEnumerator();
                 while (it.MoveNext())
                 {
@@ -116,9 +172,10 @@ namespace Chizar_Bot
                 }
                 FirstRun = false;
             }
+
         }
 
-        static public bool IsAdmin(SocketUser arg1)
+        public bool IsAdmin(SocketUser arg1)
         {
             foreach(ulong it in AdminList)
             {
@@ -183,13 +240,13 @@ namespace Chizar_Bot
         {
             foreach (BanMembers it in BanList)
             {
-                if (it.DiscId1 == user.Id)
+                if (it.GetDiscId() == user.Id)
                 {
                     var dmChannel = await user.GetOrCreateDMChannelAsync();
                     var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
-                    await channel.SendMessageAsync($"Лох { user.Username}ID: { user.Id}\nХотел зайти на канал");
+                    await channel.SendMessageAsync($"Лох { user.Mention } ID: { user.Id}\nХотел зайти на канал");
                     await dmChannel.SendMessageAsync("Лохам Вход запрещён");
-                    await user.KickAsync($"{user.Mention} Лошок");
+                    await user.KickAsync($"{it.GetKickWithReason()} Лошок");
                     return;
                 }
             }
