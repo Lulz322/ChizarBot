@@ -34,7 +34,7 @@ namespace Chizar_Bot
 
         private string nowtime;
 
-        private FileSystemWatcher Watcher = new FileSystemWatcher();
+        //private FileSystemWatcher Watcher = new FileSystemWatcher();
 
 
 
@@ -60,28 +60,16 @@ namespace Chizar_Bot
 
             Client.Log += Client_Log;
 
-            List<string> tmp = ReadWriter.TakeStringList("BanList");
-            foreach (string it in tmp)
-            {
-                string[] strtmp = it.Split('|');
-                if (strtmp.Length == 3)
-                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
-                        strtmp[1], strtmp[2], null, null));
-                else if (strtmp.Length == 4)
-                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
-                        strtmp[1], strtmp[2], strtmp[3], null));
-                else if (strtmp.Length == 5)
-                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
-                        strtmp[1], strtmp[2], strtmp[3], strtmp[4]));
-            }
+            TakeBanList();
 
             Answers = ReadWriter.TakeStringList("Answers");
             TypingList = ReadWriter.TakeUintList("TypingList");
             AdminList = ReadWriter.TakeUintList("AdminList");
 
-            Watcher.Path = @"Y:\Projects\Chizar\ChizarBot\bin\Debug\netcoreapp3.1";
+/*            Watcher.Path = @"Y:\Projects\Chizar\ChizarBot\bin\Debug\netcoreapp3.1";
             Watcher.NotifyFilter = NotifyFilters.LastWrite;
             Watcher.Filter = "*.*";
+*/
 
 
             Thread myThread = new Thread(new ThreadStart(ChangeTime));
@@ -112,7 +100,7 @@ namespace Chizar_Bot
             Client.UserJoined += AnnaunceJoinedUser;
             Client.UserIsTyping += TypingMessage;
             Client.GuildAvailable += Tick;
-            Watcher.Changed += onBanChange;
+            //Watcher.Changed += onBanChange;
             Client.Ready += CheckConnectedVariables;
 
 
@@ -141,11 +129,29 @@ namespace Chizar_Bot
 
         }
 
-        
+        private void TakeBanList()
+        {
+            BanList.Clear();
+            List<string> tmp = ReadWriter.TakeStringList("BanList");
+            foreach (string it in tmp)
+            {
+                string[] strtmp = it.Split('|');
+                if (strtmp.Length == 3)
+                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
+                        strtmp[1], strtmp[2], null, null));
+                else if (strtmp.Length == 4)
+                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
+                        strtmp[1], strtmp[2], strtmp[3], null));
+                else if (strtmp.Length == 5)
+                    BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
+                        strtmp[1], strtmp[2], strtmp[3], strtmp[4]));
+            }
+        }
 
         private async Task CheckBanListTwo()
         {
-            foreach(BanMembers it in BanList)
+            TakeBanList();
+            foreach (BanMembers it in BanList)
             {
                 if (it.GetTime() == nowtime.ToString())
                 {
@@ -208,7 +214,14 @@ namespace Chizar_Bot
                 await message.DeleteAsync();
                 return;
             }
-            
+
+            if (context.Channel.Id == 726764864164331521)
+            {
+                await context.Channel.SendMessageAsync($"{arg.Author.Username} Ролит на " + message.ToString());
+                await message.DeleteAsync();
+                return;
+            }
+
 
             if (arg.Author.Id == 219818135748870144)
             {
