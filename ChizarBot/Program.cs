@@ -18,7 +18,7 @@ namespace Chizar_Bot
 {
     class Program
     {
-        const string token = "NzE4NDY2NDA1ODU4NTQxNjE5.XviERw.8Td8szDaIePFr5EOTyhYzyaDSZI";
+        const string token = "";
         private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
         public List<ulong> AdminList;
         public List<BanMembers> BanList = new List<BanMembers>();
@@ -50,7 +50,7 @@ namespace Chizar_Bot
                 while (it.MoveNext())
                 {
                     if (!it.Current.IsBot)
-                        await CheckBanList(it.Current);
+                        await NeedSomeoneToBan(it.Current);
                 }
             }
         }
@@ -255,6 +255,19 @@ namespace Chizar_Bot
             }
         }
 
+        private async Task NeedSomeoneToBan(SocketGuildUser user)
+        {
+            foreach (BanMembers it in BanList)
+            {
+                if (it.GetDiscId() == user.Id)
+                {
+                    var dmChannel = await user.GetOrCreateDMChannelAsync();
+                    await dmChannel.SendMessageAsync("Лохам Вход запрещён");
+                    await user.KickAsync($"{it.GetKickWithReason()} Лошок");
+                    return;
+                }
+            }
+        }
 
         private async Task CheckBanList(SocketGuildUser user)
         {
