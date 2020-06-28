@@ -87,9 +87,18 @@ namespace Chizar_Bot
             await RegisterCommandsAsync();
             await Client.LoginAsync(TokenType.Bot, token);
 
-            await Client.StartAsync();
-            Thread myThread = new Thread(new ThreadStart(ChangeTime));
-            myThread.Start();
+                await Client.StartAsync();
+
+
+            try
+            {
+                Thread myThread = new Thread(new ThreadStart(ChangeTime));
+                myThread.Start();
+            }catch(Exception e)
+            {
+                Console.WriteLine("THREAD");
+            }
+
 
             await Task.Delay(-1);
 
@@ -167,12 +176,20 @@ namespace Chizar_Bot
             {
                 if (it.GetTime() == nowtime.ToString())
                 {
-                    var context = Client.GetChannel(718185523390185577) as SocketTextChannel;
-                    await context.SendMessageAsync($"Лошок {it.GetName()} с ID {it.GetDiscId()} откинулся");
+                    try
+                    {
+                        var context = Client.GetChannel(718185523390185577) as SocketTextChannel;
+                        await context.SendMessageAsync($"Лошок {it.GetName()} с ID {it.GetDiscId()} откинулся");
 
-                    await ReadWriter.RemoveObj(it.GetDiscId(), "BanList");
-                    var dmChannel = await Client.GetUser(it.GetDiscId()).GetOrCreateDMChannelAsync();
-                    await dmChannel.SendMessageAsync($"Ваши Грехи были опущенны на сервере {context.Guild.Name}");
+                        await ReadWriter.RemoveObj(it.GetDiscId(), "BanList");
+                        var dmChannel = await Client.GetUser(it.GetDiscId()).GetOrCreateDMChannelAsync();
+                        await dmChannel.SendMessageAsync($"Ваши Грехи были опущенны на сервере {context.Guild.Name}");
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("CheckBanListTwo Exception");
+                    }
+                    
                 }
             }
         }
@@ -268,9 +285,16 @@ namespace Chizar_Bot
             {
                 if (it.GetDiscId() == user.Id)
                 {
-                    var dmChannel = await user.GetOrCreateDMChannelAsync();
-                    await dmChannel.SendMessageAsync($"Лоху Вход запрещён до {it.GetTime()}");
-                    await user.KickAsync($"{it.GetKickWithReason()} Лошок");
+                    try
+                    {
+                        var dmChannel = await user.GetOrCreateDMChannelAsync();
+                        await dmChannel.SendMessageAsync($"Лоху Вход запрещён до {it.GetTime()}");
+                        await user.KickAsync($"{it.GetKickWithReason()} Лошок");
+                    }catch(Exception e)
+                    {
+                        Console.WriteLine("Need sometoBan Exception");
+                    }
+
                     return;
                 }
             }
@@ -282,12 +306,20 @@ namespace Chizar_Bot
             {
                 if (it.GetDiscId() == user.Id)
                 {
-                    var dmChannel = await user.GetOrCreateDMChannelAsync();
-                    var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
-                    await channel.SendMessageAsync($"Лох { user.Mention } ID: { user.Id}\nХотел зайти на канал");
-                    await dmChannel.SendMessageAsync($"Лоху Вход запрещён до {it.GetTime()}");
-                    await user.KickAsync($"{it.GetKickWithReason()} Лошок");
-                    return;
+                    try
+                    {
+                        var dmChannel = await user.GetOrCreateDMChannelAsync();
+                        var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
+                        await channel.SendMessageAsync($"Лох { user.Mention } ID: { user.Id}\nХотел зайти на канал");
+                        await dmChannel.SendMessageAsync($"Лоху Вход запрещён до {it.GetTime()}");
+                        await user.KickAsync($"{it.GetKickWithReason()} Лошок");
+                        return;
+                    }
+                    catch
+                    {
+                        Console.WriteLine("CheckBanList Exception");
+                    }
+
                 }
             }
         }
