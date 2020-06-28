@@ -18,7 +18,7 @@ namespace Chizar_Bot
 {
     class Program
     {
-        const string token = "";
+        const string token = "NzE4NDY2NDA1ODU4NTQxNjE5.XviERw.8Td8szDaIePFr5EOTyhYzyaDSZI";
         private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
         public List<ulong> AdminList;
         public List<BanMembers> BanList = new List<BanMembers>();
@@ -40,13 +40,19 @@ namespace Chizar_Bot
 
         private async void ChangeTime()
         {
+            IEnumerator<SocketGuildUser> it;
             while (true)
             {
                 nowtime = System.DateTime.Now.ToString();
                 Thread.Sleep(1000);
                 await CheckBanListTwo();
+                it = Client.GetGuild(718185523390185574).Users.GetEnumerator();
+                while (it.MoveNext())
+                {
+                    if (!it.Current.IsBot)
+                        await CheckBanList(it.Current);
+                }
             }
-
         }
 
         public async Task RunBotAsync()
@@ -72,13 +78,14 @@ namespace Chizar_Bot
 */
 
 
-            Thread myThread = new Thread(new ThreadStart(ChangeTime));
-            myThread.Start(); 
+
 
             await RegisterCommandsAsync();
             await Client.LoginAsync(TokenType.Bot, token);
 
             await Client.StartAsync();
+            Thread myThread = new Thread(new ThreadStart(ChangeTime));
+            myThread.Start();
 
             await Task.Delay(-1);
 
@@ -156,7 +163,7 @@ namespace Chizar_Bot
                 if (it.GetTime() == nowtime.ToString())
                 {
                     var context = Client.GetChannel(718185523390185577) as SocketTextChannel;
-                    await context.SendMessageAsync($"Лошок с ID {it.GetDiscId()} откинулся");
+                    await context.SendMessageAsync($"Лошок {it.GetName()} с ID {it.GetDiscId()} откинулся");
 
                     await ReadWriter.RemoveObj(it.GetDiscId(), "BanList");
                 }
