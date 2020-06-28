@@ -31,7 +31,7 @@ namespace Chizar_Bot
         private DiscordSocketClient Client;
         private CommandService Commands;
         private IServiceProvider Services;
-
+        private static bool isNeedToCheck = false;
         private string nowtime;
 
         //private FileSystemWatcher Watcher = new FileSystemWatcher();
@@ -46,11 +46,15 @@ namespace Chizar_Bot
                 nowtime = System.DateTime.Now.ToString();
                 Thread.Sleep(1000);
                 await CheckBanListTwo();
-                it = Client.GetGuild(718185523390185574).Users.GetEnumerator();
-                while (it.MoveNext())
+                if (isNeedToCheck == true)
                 {
-                    if (!it.Current.IsBot)
-                        await NeedSomeoneToBan(it.Current);
+                    it = Client.GetGuild(718185523390185574).Users.GetEnumerator();
+                    while (it.MoveNext())
+                    {
+                        if (!it.Current.IsBot || !IsAdmin(it.Current))
+                            await NeedSomeoneToBan(it.Current);
+                    }
+                    isNeedToCheck = false;
                 }
             }
         }
@@ -153,6 +157,7 @@ namespace Chizar_Bot
                     BanList.Add(new BanMembers(Convert.ToUInt64(strtmp[0]),
                         strtmp[1], strtmp[2], strtmp[3], strtmp[4]));
             }
+            Program.isNeedToCheck = true;
         }
 
         private async Task CheckBanListTwo()
@@ -166,6 +171,8 @@ namespace Chizar_Bot
                     await context.SendMessageAsync($"Лошок {it.GetName()} с ID {it.GetDiscId()} откинулся");
 
                     await ReadWriter.RemoveObj(it.GetDiscId(), "BanList");
+                    var dmChannel = await Client.GetUser(it.GetDiscId()).GetOrCreateDMChannelAsync();
+                    await dmChannel.SendMessageAsync($"Ваши Грехи были опущенны на сервере {context.Guild.Name}");
                 }
             }
         }
@@ -262,7 +269,7 @@ namespace Chizar_Bot
                 if (it.GetDiscId() == user.Id)
                 {
                     var dmChannel = await user.GetOrCreateDMChannelAsync();
-                    await dmChannel.SendMessageAsync("Лохам Вход запрещён");
+                    await dmChannel.SendMessageAsync($"Лоху Вход запрещён до {it.GetTime()}");
                     await user.KickAsync($"{it.GetKickWithReason()} Лошок");
                     return;
                 }
@@ -278,7 +285,7 @@ namespace Chizar_Bot
                     var dmChannel = await user.GetOrCreateDMChannelAsync();
                     var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
                     await channel.SendMessageAsync($"Лох { user.Mention } ID: { user.Id}\nХотел зайти на канал");
-                    await dmChannel.SendMessageAsync("Лохам Вход запрещён");
+                    await dmChannel.SendMessageAsync($"Лоху Вход запрещён до {it.GetTime()}");
                     await user.KickAsync($"{it.GetKickWithReason()} Лошок");
                     return;
                 }
