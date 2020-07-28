@@ -17,7 +17,7 @@ namespace Bot
 {
     class Program
     {
-        const string token = "NzE4NDY2NDA1ODU4NTQxNjE5.XtpR-w.7eCNhAXHMQoOxTui-5lps-zxTZo";
+        const string token = "";
         private List<SocketGuildUser> AllMembers = new List<SocketGuildUser>();
         public List<ulong> AdminList;
         public List<BanMembers> BanList = new List<BanMembers>();
