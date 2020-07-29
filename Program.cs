@@ -35,6 +35,8 @@ namespace Bot
         private string nowtime;
         private DateTime nowatime;
 
+        private bool HourTick = false;
+
         //private FileSystemWatcher Watcher = new FileSystemWatcher();
 
 
@@ -46,7 +48,7 @@ namespace Bot
             {
                 nowtime = System.DateTime.Now.ToString();
                 nowatime = System.DateTime.Now;
-		nowatime = nowatime.AddHours(3);
+		        nowatime = nowatime.AddHours(3);
                 Thread.Sleep(1000);
                 await CheckBanListTwo();
                 if (isNeedToCheck == true)
@@ -58,6 +60,50 @@ namespace Bot
                             await NeedSomeoneToBan(it.Current);
                     }
                     isNeedToCheck = false;
+                }
+            }
+        }
+
+
+        private async void EveryHourBan(){
+            DateTime TimerToBan = nowatime;
+            IReadOnlyCollection<SocketGuild> temp;
+            IEnumerator<SocketGuildUser> it;
+            List<SocketUser> UsersOnChannel = new List<SocketUser>();
+            var dm = Client.GetChannel(718185523390185577) as SocketTextChannel;
+
+
+            while (true){
+                if (!HourTick){
+                    TimerToBan = nowatime.AddHours(1);
+                    HourTick = true;
+                }
+                if (nowatime == TimerToBan){
+                    temp = Client.Guilds;
+                    foreach(SocketGuild iterator in temp){
+                        it = iterator.Users.GetEnumerator();
+                        while(it.MoveNext()){
+                            if (!it.Current.IsBot || !IsAdmin(it.Current))
+                                UsersOnChannel.Add(it.Current);
+                        }
+                        Random random = new Random();
+                        
+                        BanMember(UsersOnChannel[random.Next(0, UsersOnChannel.Count)]);
+                        HourTick = false;
+                    }
+                }
+                if (TimerToBan.AddMinutes(-5) == nowatime){
+                    await dm.SendMessageAsync("До профилактического бана осталось 5 минут");
+                }else if(TimerToBan.AddMinutes(-3) == nowatime){
+                    await dm.SendMessageAsync("До профилактического бана осталось 3 минуты");
+                }else if (TimerToBan.AddMinutes(-1) == nowatime){
+                    await dm.SendMessageAsync("До профилактического бана осталось 1 минута");
+                }else if(TimerToBan.AddMinutes(-15) == nowatime){
+                    await dm.SendMessageAsync("До профилактического бана осталось 15 минут");
+                }else if (TimerToBan.AddMinutes(-30) == nowatime){
+                    await dm.SendMessageAsync("До профилактического бана осталось 30 минут");
+                }else if (TimerToBan.AddMinutes(-45) == nowatime){
+                    await dm.SendMessageAsync("До профилактического бана осталось 45 минут");
                 }
             }
         }
