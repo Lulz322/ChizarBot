@@ -143,7 +143,9 @@ namespace Bot
             try
             {
                 Thread myThread = new Thread(new ThreadStart(ChangeTime));
+                Thread HourThread = new Thread(new ThreadStart(EveryHourBan));
                 myThread.Start();
+                HourThread.Start();
             }catch(Exception e)
             {
                 Console.WriteLine("THREAD");
