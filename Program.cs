@@ -146,8 +146,10 @@ namespace Bot
 
         private async Task VoiceUpdated(SocketUser user , SocketVoiceState firstState, SocketVoiceState secondState){
             var dm = Client.GetChannel(737666532171317329) as SocketTextChannel;
+            if (IsAdmin(user))
+                return ;
             if (firstState.VoiceChannel == null){
-                await dm.SendMessageAsync($"{user.Mention} connected to {secondState.VoiceChannel.Name}");
+                await dm.SendMessageAsync($"{user.Mention} connected to {secondState.VoiceChannel.Name} {nowatime.ToString()}");
                 MemberMovements temp = IsMemberExist(user.Id);
                 if (temp == null)
                     ConnectedUsers.Add(new MemberMovements(user.Id, nowatime));
@@ -159,20 +161,28 @@ namespace Bot
                     temp.increment();
                     if (temp.GetConnectedTime() == 2){
                         await user.SendMessageAsync($"If you connected/disconnected one more time in short time on {dm.Guild.Name} u'll get banned");
+                        await dm.SendMessageAsync($"{user.Mention} already connected two times in one hour, next one will get banned");
                     }
                     if (temp.GetConnectedTime() == 3){
                         BanMember(user);
                         ConnectedUsers.Remove(temp);
                     }
                 }
-
-
+                return ;
+            }
+            if (secondState.VoiceChannel == null){
+                await dm.SendMessageAsync($"{user.Mention} disconneted from {firstState.VoiceChannel.Name} {nowatime.ToString()}");
                 return ;
             }
 
-            if (secondState.VoiceChannel == null){
-                await dm.SendMessageAsync($"{user.Mention} disconneted from {firstState.VoiceChannel.Name}");
-                return ;
+            if (secondState.IsSelfMuted && secondState.IsSelfDeafened){
+                await dm.SendMessageAsync($"{user.Mention} Muted and Deafened {nowatime.ToString()}");
+            }else if (secondState.IsSelfMuted){
+                await dm.SendMessageAsync($"{user.Mention} Muted {nowatime.ToString()}");
+            }else if (secondState.IsSelfDeafened){
+                await dm.SendMessageAsync($"{user.Mention} Deafened {nowatime.ToString()}");
+            }else if (secondState.VoiceChannel != firstState.VoiceChannel){
+                await dm.SendMessageAsync($"{user.Mention} moved from {firstState.VoiceChannel.Name} to {secondState.VoiceChannel.Name} {nowatime.ToString()}");
             }
 
         }

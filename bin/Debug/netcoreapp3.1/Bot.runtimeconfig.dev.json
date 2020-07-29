@@ -1,8 +1,8 @@
 {
   "runtimeOptions": {
     "additionalProbingPaths": [
-      "/home/gallifrey322/.dotnet/store/|arch|/|tfm|",
-      "/home/gallifrey322/.nuget/packages"
+      "C:\\Users\\fredd\\.dotnet\\store\\|arch|\\|tfm|",
+      "C:\\Users\\fredd\\.nuget\\packages"
     ]
   }
 }
