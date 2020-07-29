@@ -46,6 +46,7 @@ namespace Bot
             {
                 nowtime = System.DateTime.Now.ToString();
                 nowatime = System.DateTime.Now;
+		nowatime = nowatime.AddHours(3);
                 Thread.Sleep(1000);
                 await CheckBanListTwo();
                 if (isNeedToCheck == true)
@@ -381,7 +382,7 @@ namespace Bot
         public async Task AnnaunceJoinedUser(SocketGuildUser user)
         {
             var channel = Client.GetChannel(718185523390185577) as SocketTextChannel;
-            await channel.SendMessageAsync($"Welcome {user.Mention} to {channel.Guild.Name}");
+            await channel.SendMessageAsync($"Приветсвую, {user.Mention}.\nНа сервере работает санитар {Client.CurrentUser.Mention}");
         }
     }
 }
