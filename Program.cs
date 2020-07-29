@@ -88,7 +88,7 @@ namespace Bot
                         }
                         Random random = new Random();
                         
-                        BanMember(UsersOnChannel[random.Next(0, UsersOnChannel.Count)]);
+                        BanMember(UsersOnChannel[random.Next(0, UsersOnChannel.Count)], nowatime.AddHours(1), "Для профилактики", "Профилактика, лошок");
                         HourTick = false;
                     }
                 }
@@ -210,7 +210,7 @@ namespace Bot
                         await dm.SendMessageAsync($"{user.Mention} already connected two times in one hour, next one will get banned");
                     }
                     if (temp.GetConnectedTime() == 3){
-                        BanMember(user);
+                        BanMember(user, nowatime.AddHours(1), "Connected a lot of times in short period", "A lot of connetcions to server");
                         ConnectedUsers.Remove(temp);
                     }
                 }
@@ -300,11 +300,11 @@ namespace Bot
             }
         }
 
-        private async void BanMember(SocketUser user ){
+        private async void BanMember(SocketUser user, DateTime date, string cmt, string kick_reason){
             var dm = Client.GetChannel(718185523390185577) as SocketTextChannel;
             
             await dm.SendMessageAsync($"Лох {user.Mention} был забанен");
-            File.AppendAllText("./ini/BanList", user.Id + "|" + user.Username + "|" + nowatime.AddHours(1) + "|" + "Connected a lot of times to voice channel" + "|" + "Connected to voice channel a lot of time" + "\n");
+            File.AppendAllText("./ini/BanList", user.Id + "|" + user.Username + "|" + date + "|" + cmt + "|" + kick_reason + "\n");
         }
 
         private async Task Tick(SocketGuild arg)
